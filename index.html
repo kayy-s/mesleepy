@@ -251,7 +251,7 @@
     // ✅ YES growth: fast + accelerating, and eventually full-screen
     let scale = 1;
     let scaleSpeed = 0.18;       // faster start
-    const GROW_INTERVAL_MS = 150; // more frequent updates
+    const GROW_INTERVAL_MS = 130; // more frequent updates
 
     // How big to truly "cover" the screen.
     // For a centered element, 14 is safely "full takeover" on most screens.
@@ -261,7 +261,7 @@
       if (!noBtnVisible) return;
 
       scale += scaleSpeed;
-      scaleSpeed *= 0.985; // acceleration
+      scaleSpeed *= 0.975; // acceleration
 
       // Make YES feel like a takeover slab by increasing padding as it grows
       // (so the green area fills the screen more decisively)
