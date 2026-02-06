@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will You Be My Friend?</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    /* Fun background: soft floating blobs */
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      background: rgba(255, 255, 255, 0.10);
+      border-radius: 50%;
+      filter: blur(70px);
+      animation: float 12s infinite ease-in-out;
+      z-index: 0;
+      pointer-events: none;
+    }
+    body::before { top: 8%; left: 10%; }
+    body::after  { bottom: 12%; right: 12%; animation-delay: 6s; }
+
+    .blob {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      filter: blur(65px);
+      animation: float2 14s infinite ease-in-out;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .blob.b1 { top: 22%; right: 18%; animation-delay: 2s; }
+    .blob.b2 { bottom: 25%; left: 18%; width: 220px; height: 220px; animation-delay: 8s; }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.10;
+      background-image: radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px);
+      background-size: 3px 3px;
+      mix-blend-mode: soft-light;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0px) translateX(0px); }
+      50%  { transform: translateY(-45px) translateX(18px); }
+      100% { transform: translateY(0px) translateX(0px); }
+    }
+    @keyframes float2 {
+      0%   { transform: translateY(0px) translateX(0px) scale(1); }
+      50%  { transform: translateY(35px) translateX(-20px) scale(1.05); }
+      100% { transform: translateY(0px) translateX(0px) scale(1); }
+    }
+
+    h1 {
+      font-size: min(15vw, 120px);
+      color: white;
+      text-align: center;
+      margin-bottom: 50px;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      padding: 0 20px;
+      z-index: 2;
+      transition: opacity 0.15s ease-out;
+    }
+
+    .button-container {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      height: 200px;
+      z-index: 2;
+    }
+
+    button {
+      padding: 20px 40px;
+      font-size: 24px;
+      font-weight: bold;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* YES becomes a screen takeover */
+    #yesBtn {
+      background: #4CAF50;
+      color: white;
+
+      position: fixed;
+      left: 50%;
+      top: 62%;
+      transform: translate(-50%, -50%) scale(1);
+      z-index: 6;
+
+      transition: transform 0.06s ease-out;
+      will-change: transform;
+
+      /* ✅ helps it become a "slab" when huge */
+      padding: 22px 46px;
+    }
+
+    #noBtn {
+      background: #f44336;
+      color: white;
+
+      position: fixed;
+      left: 60%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+
+      transition: all 0.08s ease-out;
+      touch-action: none;
+      z-index: 5;
+    }
+
+    .confetti-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .confetti {
+      position: absolute;
+      border-radius: 3px;
+      opacity: 0.95;
+      animation: fall 3s linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(520deg);
+        opacity: 0;
+      }
+    }
+
+    .thank-you {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-align: center;
+      z-index: 1001;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.35);
+      animation: fadeIn 0.5s ease-in;
+
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      padding: 34px 38px;
+
+      line-height: 1.4;
+      max-width: min(860px, 92vw);
+    }
+
+    .thank-you .main {
+      font-size: 52px;
+      margin-bottom: 28px;
+      letter-spacing: 0.2px;
+    }
+
+    .thank-you .emoji {
+      display: inline-block;
+      margin-left: 10px;
+      animation: pop 0.9s ease-in-out infinite;
+      transform-origin: center;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+    }
+
+    .thank-you .sub {
+      font-size: 18px;
+      opacity: 0.88;
+      letter-spacing: 0.3px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes pop {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%      { transform: translateY(-6px) scale(1.06); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="grain"></div>
+
+  <h1 id="headline">Will you be my friend?</h1>
+
+  <div class="button-container">
+    <button id="yesBtn">YES!</button>
+    <button id="noBtn">No!</button>
+  </div>
+
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <div class="thank-you" id="thankYou">
+    <div class="main">
+      Deal. You’re stuck with me now <span class="emoji">😌🎉</span>
+    </div>
+    <div class="sub">PS: Screenshot this and send it to me as proof.</div>
+  </div>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const headline = document.getElementById("headline");
+    const confettiContainer = document.getElementById("confettiContainer");
+    const thankYou = document.getElementById("thankYou");
+
+    let noBtnVisible = true;
+
+    // ✅ YES growth: fast + accelerating, and eventually full-screen
+    let scale = 1;
+    let scaleSpeed = 0.18;       // faster start
+    const GROW_INTERVAL_MS = 150; // more frequent updates
+
+    // How big to truly "cover" the screen.
+    // For a centered element, 14 is safely "full takeover" on most screens.
+    const FULL_TAKEOVER_SCALE = 14;
+
+    const growYes = setInterval(() => {
+      if (!noBtnVisible) return;
+
+      scale += scaleSpeed;
+      scaleSpeed *= 0.985; // acceleration
+
+      // Make YES feel like a takeover slab by increasing padding as it grows
+      // (so the green area fills the screen more decisively)
+      const extraPad = Math.min(220, (scale - 1) * 20);
+      yesBtn.style.padding = `${22 + extraPad}px ${46 + extraPad}px`;
+
+      yesBtn.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+      // Fade the headline behind YES as it grows
+      // (keeps the visual clean and makes it feel like only YES remains)
+      const fadeStart = 1.8;
+      const fadeEnd = 5.5;
+      if (scale > fadeStart) {
+        const t = Math.min(1, (scale - fadeStart) / (fadeEnd - fadeStart));
+        headline.style.opacity = String(1 - t);
+      }
+
+      // ✅ Keep NO around longer: only hide when YES is truly taking over
+      // It continues dodging until then.
+      if (scale > 6.8) {
+        // Don't fully kill it instantly—fade it slightly first
+        noBtn.style.opacity = "0.55";
+      }
+
+      if (scale > 9.5) {
+        noBtn.style.opacity = "0";
+        noBtn.style.pointerEvents = "none";
+        noBtnVisible = false;
+      }
+
+      // Stop growth once it fills the screen (prevents unnecessary CPU usage)
+      if (scale >= FULL_TAKEOVER_SCALE) {
+        clearInterval(growYes);
+        // At this point, the page is effectively "only YES"
+      }
+    }, GROW_INTERVAL_MS);
+
+    // NO dodge logic (mouse + touch)
+    // As YES grows, NO becomes *more* slippery
+    document.addEventListener("pointermove", (e) => {
+      if (!noBtnVisible) return;
+
+      const rect = noBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Base radius
+      let dangerRadius = e.pointerType === "touch" ? 210 : 165;
+
+      // Make it dodge more aggressively as YES grows
+      dangerRadius += Math.min(140, (scale - 1) * 18);
+
+      if (distance < dangerRadius) {
+        const angle = Math.atan2(dy, dx);
+        const move = dangerRadius - distance;
+
+        let newX = cx - Math.cos(angle) * move;
+        let newY = cy - Math.sin(angle) * move;
+
+        // Keep within viewport, with a margin so it doesn't stick to edges
+        const margin = 12;
+        const maxX = window.innerWidth - rect.width - margin;
+        const maxY = window.innerHeight - rect.height - margin;
+
+        newX = Math.max(margin, Math.min(newX, maxX));
+        newY = Math.max(margin, Math.min(newY, maxY));
+
+        noBtn.style.left = newX + "px";
+        noBtn.style.top = newY + "px";
+        noBtn.style.transform = "none";
+      }
+    });
+
+    // YES click
+    yesBtn.addEventListener("click", () => {
+      yesBtn.style.display = "none";
+      noBtn.style.display = "none";
+      thankYou.style.display = "block";
+      createConfetti();
+    });
+
+    function createConfetti() {
+      const colors = ["#667eea","#764ba2","#9f7aea","#63b3ed","#f687b3","#fbd38d","#68d391"];
+
+      for (let i = 0; i < 120; i++) {
+        setTimeout(() => {
+          const c = document.createElement("div");
+          c.className = "confetti";
+          c.style.left = Math.random() * 100 + "%";
+          c.style.top = "-10px";
+          c.style.background = colors[Math.floor(Math.random() * colors.length)];
+          c.style.width = (Math.random() * 6 + 8) + "px";
+          c.style.height = (Math.random() * 6 + 8) + "px";
+          c.style.animationDuration = (Math.random() * 2 + 2.2) + "s";
+          c.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+          confettiContainer.appendChild(c);
+          setTimeout(() => c.remove(), 3500);
+        }, i * 22);
+      }
+    }
+  </script>
+</body>
+</html>
